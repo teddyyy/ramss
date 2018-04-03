@@ -4,21 +4,12 @@ import (
 	"fmt"
 	"os"
 
+	"../model"
 	"github.com/godbus/dbus"
 )
 
-// Unit ...
-type Unit struct {
-	ID            string `json:"Id"`
-	Description   string `json:"Description"`
-	LoadState     string `json:"LoadState"`
-	ActiveState   string `json:"ActiveState"`
-	UnitFileState string `json:"UnitFileState"`
-	MainPID       int    `json:"MainPID"`
-}
-
 // Get ...
-func Get(ID string) *Unit {
+func Get(ID string) *model.Unit {
 
 	conn, err := dbus.SystemBus()
 	if err != nil {
@@ -68,7 +59,7 @@ func Get(ID string) *Unit {
 		return nil
 	}
 
-	u := &Unit{
+	u := &model.Unit{
 		ID:            ID,
 		Description:   desc,
 		LoadState:     loadStatus,
@@ -81,7 +72,7 @@ func Get(ID string) *Unit {
 }
 
 // Post ...
-func Post(ID string, action string) error {
+func Post(ID string, action string, mode string) error {
 	conn, err := dbus.SystemBus()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to connect to system bus:", err)
@@ -94,53 +85,15 @@ func Post(ID string, action string) error {
 
 	switch action {
 	case "start":
-		err = obj.Call("org.freedesktop.systemd1.Manager.StartUnit", 0, ID+".service", "replace").Store(&path)
+		err = obj.Call("org.freedesktop.systemd1.Manager.StartUnit", 0, ID+".service", mode).Store(&path)
 	case "restart":
-		err = obj.Call("org.freedesktop.systemd1.Manager.ReStartUnit", 0, ID+".service", "replace").Store(&path)
+		err = obj.Call("org.freedesktop.systemd1.Manager.ReStartUnit", 0, ID+".service", mode).Store(&path)
+	case "stop":
+		err = obj.Call("org.freedesktop.systemd1.Manager.StopUnit", 0, ID+".service", mode).Store(&path)
+	case "reload":
+		err = obj.Call("org.freedesktop.systemd1.Manager.ReloadUnit", 0, ID+".service", mode).Store(&path)
 	default:
 		fmt.Fprintln(os.Stderr, "Unknown action:", err)
-		return nil
-	}
-
-	return nil
-}
-
-// Delete ...
-func Delete(ID string) error {
-	conn, err := dbus.SystemBus()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to connect to system bus:", err)
-		return nil
-	}
-
-	var path dbus.ObjectPath
-
-	obj := conn.Object("org.freedesktop.systemd1", "/org/freedesktop/systemd1")
-
-	err = obj.Call("org.freedesktop.systemd1.Manager.StopUnit", 0, ID+".service", "replace").Store(&path)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to stop systemd unit:", err)
-		return nil
-	}
-
-	return nil
-}
-
-// Put ...
-func Put(ID string) error {
-	conn, err := dbus.SystemBus()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to connect to system bus:", err)
-		return nil
-	}
-
-	var path dbus.ObjectPath
-
-	obj := conn.Object("org.freedesktop.systemd1", "/org/freedesktop/systemd1")
-
-	err = obj.Call("org.freedesktop.systemd1.Manager.ReloadUnit", 0, ID+".service", "replace").Store(&path)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to reload systemd unit:", err)
 		return nil
 	}
 
