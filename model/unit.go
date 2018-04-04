@@ -14,3 +14,9 @@ type Unit struct {
 type Units struct {
 	Units []*Unit `json:"Systemd"`
 }
+
+// APIError ...
+type APIError struct {
+	Code    int
+	Message string
+}

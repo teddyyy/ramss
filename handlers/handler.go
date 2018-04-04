@@ -58,3 +58,22 @@ func Post(systems []string) echo.HandlerFunc {
 		return c.JSON(http.StatusBadRequest, "error")
 	}
 }
+
+// ErrorHandler ...
+func ErrorHandler(err error, c echo.Context) {
+	code := http.StatusInternalServerError
+	msg := "Internal Server Error"
+
+	if he, ok := err.(*echo.HTTPError); ok {
+		code = he.Code
+		msg = he.Message.(string)
+	}
+
+	var apierr model.APIError
+	apierr.Code = code
+	apierr.Message = msg
+
+	if !c.Response().Committed {
+		c.JSON(code, apierr)
+	}
+}

@@ -33,6 +33,9 @@ func main() {
 		panic(err)
 	}
 
+	// Error
+	e.HTTPErrorHandler = handlers.ErrorHandler
+
 	// Routing
 	e.GET("/api/v1/systemd/", handlers.Gets(c.Services))
 	e.GET("/api/v1/systemd/:unit", handlers.Get(c.Services))
