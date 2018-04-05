@@ -34,7 +34,7 @@ func main() {
 	}
 
 	// Error
-	e.HTTPErrorHandler = handlers.ErrorHandler
+	e.HTTPErrorHandler = handlers.DefaultErrorHandler
 
 	// Routing
 	e.GET("/api/v1/systemd/", handlers.Gets(c.Services))

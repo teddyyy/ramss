@@ -14,16 +14,23 @@ type PostParam struct {
 	Mode   string `json:"mode"`
 }
 
+func isIncludeUnit(unit string, systems []string) bool {
+	for _, system := range systems {
+		if system == unit {
+			return true
+		}
+	}
+	return false
+}
+
 // Get ...
 func Get(systems []string) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		for _, system := range systems {
-			if system == c.Param("unit") {
-				return c.JSON(http.StatusOK, systemd.Get(c.Param("unit")))
-			}
+		if isIncludeUnit(c.Param("unit"), systems) {
+			return c.JSON(http.StatusOK, systemd.Get(c.Param("unit")))
 		}
 
-		return c.JSON(http.StatusBadRequest, "error")
+		return requestError(c, http.StatusBadRequest, 400, "Invalid request")
 	}
 }
 
@@ -45,22 +52,22 @@ func Post(systems []string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		param := new(PostParam)
 		if err := c.Bind(param); err != nil {
-			return err
+			return jsonError(c, http.StatusBadRequest, err, 400, "Invalid json request")
 		}
 
 		for _, system := range systems {
 			if system == c.Param("unit") {
 				systemd.Post(c.Param("unit"), param.Action, param.Mode)
-				return c.JSON(http.StatusOK, "ok")
+				return requestSuccess(c, http.StatusOK, 200, "success")
 			}
 		}
 
-		return c.JSON(http.StatusBadRequest, "error")
+		return requestError(c, http.StatusBadRequest, 400, "Invalid request")
 	}
 }
 
-// ErrorHandler ...
-func ErrorHandler(err error, c echo.Context) {
+// DefaultErrorHandler ...
+func DefaultErrorHandler(err error, c echo.Context) {
 	code := http.StatusInternalServerError
 	msg := "Internal Server Error"
 
@@ -76,4 +83,29 @@ func ErrorHandler(err error, c echo.Context) {
 	if !c.Response().Committed {
 		c.JSON(code, apierr)
 	}
+}
+
+func jsonError(c echo.Context, status int, err error, code int, msg string) error {
+	var apierr model.APIError
+	apierr.Code = code
+	apierr.Message = msg
+
+	c.JSON(status, apierr)
+	return err
+}
+
+func requestError(c echo.Context, status int, code int, msg string) error {
+	var apierr model.APIError
+	apierr.Code = code
+	apierr.Message = msg
+
+	return c.JSON(status, apierr)
+}
+
+func requestSuccess(c echo.Context, status int, code int, msg string) error {
+	var apiscs model.APISuccess
+	apiscs.Code = code
+	apiscs.Message = msg
+
+	return c.JSON(status, apiscs)
 }
