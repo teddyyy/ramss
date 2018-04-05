@@ -97,7 +97,7 @@ func Post(ID string, action string, mode string) error {
 	case "start":
 		err = obj.Call(mngerMethod+".StartUnit", 0, dstService, mode).Store(&path)
 	case "restart":
-		err = obj.Call(mngerMethod+".ReStartUnit", 0, dstService, mode).Store(&path)
+		err = obj.Call(mngerMethod+".RestartUnit", 0, dstService, mode).Store(&path)
 	case "stop":
 		err = obj.Call(mngerMethod+".StopUnit", 0, dstService, mode).Store(&path)
 	case "reload":
