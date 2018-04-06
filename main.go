@@ -14,7 +14,8 @@ type config struct {
 }
 
 var (
-	fileOpt = flag.String("f", "./config.yaml", "help message for \"f\" option")
+	fileOpt = flag.String("f", "./config.yaml", "config file")
+	portOpt = flag.String("p", "8080", "listen port")
 )
 
 func main() {
@@ -41,5 +42,5 @@ func main() {
 	e.GET("/api/v1/systemd/:unit", handlers.Get(c.Services))
 	e.POST("/api/v1/systemd/:unit", handlers.Post(c.Services))
 
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.Start(":" + *portOpt))
 }
