@@ -108,5 +108,9 @@ func Post(ID string, action string, mode string) error {
 		return errors.New("Unknown action")
 	}
 
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

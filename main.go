@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 
 	"./handlers"
+	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
 	"gopkg.in/yaml.v2"
 )
@@ -20,6 +21,7 @@ var (
 
 func main() {
 	e := echo.New()
+	e.Validator = &Validator{validator: validator.New()}
 
 	flag.Parse()
 

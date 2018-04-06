@@ -8,11 +8,12 @@ import (
 	"github.com/labstack/echo"
 )
 
-// PostParam ...
-type PostParam struct {
-	Action string `json:"action"`
-	Mode   string `json:"mode"`
-}
+type (
+	postParam struct {
+		Action string `json:"action" validate:"required"`
+		Mode   string `json:"mode" validate:"required"`
+	}
+)
 
 func isIncludeConfig(unit string, systems []string) bool {
 	for _, system := range systems {
@@ -32,7 +33,7 @@ func Get(systems []string) echo.HandlerFunc {
 
 		status, err := systemd.Get(c.Param("unit"))
 		if err != nil {
-			return jsonError(c, http.StatusBadRequest, err, 400, "Invalid request")
+			return httpError(c, http.StatusBadRequest, err, 400, "Invalid request")
 		}
 
 		return c.JSON(http.StatusOK, status)
@@ -47,7 +48,7 @@ func Gets(systems []string) echo.HandlerFunc {
 		for _, system := range systems {
 			status, err := systemd.Get(system)
 			if err != nil {
-				return jsonError(c, http.StatusBadRequest, err, 400, "Invalid request")
+				return httpError(c, http.StatusBadRequest, err, 400, "Invalid request")
 			}
 			us.Units = append(us.Units, status)
 		}
@@ -59,9 +60,13 @@ func Gets(systems []string) echo.HandlerFunc {
 // Post ...
 func Post(systems []string) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		param := new(PostParam)
+		param := new(postParam)
 		if err := c.Bind(param); err != nil {
-			return jsonError(c, http.StatusBadRequest, err, 400, "Invalid json request")
+			return httpError(c, http.StatusBadRequest, err, 400, "Invalid json request")
+		}
+
+		if err := c.Validate(param); err != nil {
+			return httpError(c, http.StatusBadRequest, err, 400, "Invalid json request")
 		}
 
 		if !isIncludeConfig(c.Param("unit"), systems) {
@@ -69,7 +74,7 @@ func Post(systems []string) echo.HandlerFunc {
 		}
 
 		if err := systemd.Post(c.Param("unit"), param.Action, param.Mode); err != nil {
-			return jsonError(c, http.StatusBadRequest, err, 500, "Invalid request")
+			return httpError(c, http.StatusBadRequest, err, 400, "Invalid request")
 		}
 
 		return postSuccess(c, http.StatusOK, 200, "success")
@@ -95,7 +100,7 @@ func DefaultErrorHandler(err error, c echo.Context) {
 	}
 }
 
-func jsonError(c echo.Context, status int, err error, code int, msg string) error {
+func httpError(c echo.Context, status int, err error, code int, msg string) error {
 	var apierr model.APIError
 	apierr.Code = code
 	apierr.Message = msg
