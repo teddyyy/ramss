@@ -1,6 +1,7 @@
 package systemd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -16,55 +17,55 @@ const destUnit = "org.freedesktop.systemd1.Unit"
 const destService = "org.freedesktop.systemd1.Service"
 
 // Get ...
-func Get(ID string) *model.Unit {
+func Get(ID string) (*model.Unit, error) {
 	var dstService = ID + ".service"
 
 	conn, err := dbus.SystemBus()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to connect to system bus:", err)
-		return nil
+		return nil, err
 	}
 
 	var path dbus.ObjectPath
 	err = conn.Object(destBus, objectPath).Call(mngerMethod+".GetUnit", 0, dstService).Store(&path)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to get object path:", err)
-		return nil
+		return nil, err
 	}
 
 	var desc string
 	err = conn.Object(destBus, path).Call(getMethod, 0, destUnit, "Description").Store(&desc)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to get description:", err)
-		return nil
+		return nil, err
 	}
 
 	var loadStatus string
 	err = conn.Object(destBus, path).Call(getMethod, 0, destUnit, "LoadState").Store(&loadStatus)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to get load status:", err)
-		return nil
+		return nil, err
 	}
 
 	var activeStatus string
 	err = conn.Object(destBus, path).Call(getMethod, 0, destUnit, "ActiveState").Store(&activeStatus)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to get active status:", err)
-		return nil
+		return nil, err
 	}
 
 	var unitFileState string
 	err = conn.Object(destBus, path).Call(getMethod, 0, destUnit, "UnitFileState").Store(&unitFileState)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to get unit file status:", err)
-		return nil
+		return nil, err
 	}
 
 	var pid int
 	err = conn.Object(destBus, path).Call(getMethod, 0, destService, "MainPID").Store(&pid)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to get main pid:", err)
-		return nil
+		return nil, err
 	}
 
 	u := &model.Unit{
@@ -76,7 +77,7 @@ func Get(ID string) *model.Unit {
 		MainPID:       pid,
 	}
 
-	return u
+	return u, nil
 }
 
 // Post ...
@@ -86,7 +87,7 @@ func Post(ID string, action string, mode string) error {
 	conn, err := dbus.SystemBus()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to connect to system bus:", err)
-		return nil
+		return err
 	}
 
 	var path dbus.ObjectPath
@@ -104,7 +105,7 @@ func Post(ID string, action string, mode string) error {
 		err = obj.Call(mngerMethod+".ReloadUnit", 0, dstService, mode).Store(&path)
 	default:
 		fmt.Fprintln(os.Stderr, "Unknown action:", err)
-		return nil
+		return errors.New("Unknown action")
 	}
 
 	return nil

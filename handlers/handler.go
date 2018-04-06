@@ -14,7 +14,7 @@ type PostParam struct {
 	Mode   string `json:"mode"`
 }
 
-func isIncludeUnit(unit string, systems []string) bool {
+func isIncludeConfig(unit string, systems []string) bool {
 	for _, system := range systems {
 		if system == unit {
 			return true
@@ -26,11 +26,16 @@ func isIncludeUnit(unit string, systems []string) bool {
 // Get ...
 func Get(systems []string) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		if isIncludeUnit(c.Param("unit"), systems) {
-			return c.JSON(http.StatusOK, systemd.Get(c.Param("unit")))
+		if !isIncludeConfig(c.Param("unit"), systems) {
+			return requestError(c, http.StatusBadRequest, 404, "Not found")
 		}
 
-		return requestError(c, http.StatusBadRequest, 400, "Invalid request")
+		status, err := systemd.Get(c.Param("unit"))
+		if err != nil {
+			return jsonError(c, http.StatusBadRequest, err, 400, "Invalid request")
+		}
+
+		return c.JSON(http.StatusOK, status)
 	}
 }
 
@@ -38,9 +43,13 @@ func Get(systems []string) echo.HandlerFunc {
 func Gets(systems []string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var us model.Units
+
 		for _, system := range systems {
-			u := systemd.Get(system)
-			us.Units = append(us.Units, u)
+			status, err := systemd.Get(system)
+			if err != nil {
+				return jsonError(c, http.StatusBadRequest, err, 400, "Invalid request")
+			}
+			us.Units = append(us.Units, status)
 		}
 
 		return c.JSON(http.StatusOK, us)
@@ -55,14 +64,15 @@ func Post(systems []string) echo.HandlerFunc {
 			return jsonError(c, http.StatusBadRequest, err, 400, "Invalid json request")
 		}
 
-		for _, system := range systems {
-			if system == c.Param("unit") {
-				systemd.Post(c.Param("unit"), param.Action, param.Mode)
-				return requestSuccess(c, http.StatusOK, 200, "success")
-			}
+		if !isIncludeConfig(c.Param("unit"), systems) {
+			return requestError(c, http.StatusBadRequest, 404, "Not found")
 		}
 
-		return requestError(c, http.StatusBadRequest, 400, "Invalid request")
+		if err := systemd.Post(c.Param("unit"), param.Action, param.Mode); err != nil {
+			return jsonError(c, http.StatusBadRequest, err, 500, "Invalid request")
+		}
+
+		return postSuccess(c, http.StatusOK, 200, "success")
 	}
 }
 
@@ -102,7 +112,7 @@ func requestError(c echo.Context, status int, code int, msg string) error {
 	return c.JSON(status, apierr)
 }
 
-func requestSuccess(c echo.Context, status int, code int, msg string) error {
+func postSuccess(c echo.Context, status int, code int, msg string) error {
 	var apiscs model.APISuccess
 	apiscs.Code = code
 	apiscs.Message = msg
