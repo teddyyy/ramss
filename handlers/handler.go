@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/ramss/model"
-	"github.com/ramss/systemd"
+	"github.com/teddyyy/ramss/model"
+	"github.com/teddyyy/ramss/systemd"
 )
 
 type (

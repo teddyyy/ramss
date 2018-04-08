@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
-	"github.com/ramss/handlers"
+	"github.com/teddyyy/ramss/handlers"
 	"gopkg.in/yaml.v2"
 )
 

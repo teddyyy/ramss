@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/godbus/dbus"
-	"github.com/ramss/model"
+	"github.com/teddyyy/ramss/model"
 )
 
 const destBus = "org.freedesktop.systemd1"
