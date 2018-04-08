@@ -7,7 +7,12 @@ setup
 --------------
 
 ```
-
+$ mkdir -p $GOPATH/src/github.com/teddyyy
+$ cd $GOPATH/src/github.com/teddyyy
+$ git clone https://github.com/teddyyy/ramss.git
+$ cd ramss
+$ dep ensure
+$ go build
 ```
 
 usage
