@@ -76,7 +76,7 @@ API
   ```
 
 * POST `/api/v1/systemd/<service>`
-  * The status of systemd service is obtained by POST.
+  * The status of systemd service is manipulated by POST.
   * The `<service>` is defined in config file and match with name.
   * Ex) Request body
   ```
