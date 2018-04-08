@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"../model"
 	"github.com/godbus/dbus"
+	"github.com/ramss/model"
 )
 
 const destBus = "org.freedesktop.systemd1"

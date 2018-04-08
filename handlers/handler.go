@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"../model"
-	"../systemd"
 	"github.com/labstack/echo"
+	"github.com/ramss/model"
+	"github.com/ramss/systemd"
 )
 
 type (

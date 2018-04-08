@@ -4,9 +4,9 @@ import (
 	"flag"
 	"io/ioutil"
 
-	"./handlers"
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
+	"github.com/ramss/handlers"
 	"gopkg.in/yaml.v2"
 )
 
