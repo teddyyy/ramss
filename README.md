@@ -62,7 +62,7 @@ API
 
 * GET `/api/v1/systemd/<service>`
   * The status of systemd service is obtained by GET.
-  * The `<service>` is defined in config file and match with name.
+  * The `<service>` is defined in config file and match with unit_name.
   * Ex) Response body
   ```
   {
@@ -77,7 +77,7 @@ API
 
 * POST `/api/v1/systemd/<service>`
   * The status of systemd service is manipulated by POST.
-  * The `<service>` is defined in config file and match with name.
+  * The `<service>` is defined in config file and match with unit_name.
   * Ex) Request body
   ```
   {

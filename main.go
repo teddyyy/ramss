@@ -7,12 +7,9 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
 	"github.com/teddyyy/ramss/handlers"
+	"github.com/teddyyy/ramss/model"
 	"gopkg.in/yaml.v2"
 )
-
-type config struct {
-	Services []string `yaml:"services"`
-}
 
 var (
 	fileOpt = flag.String("f", "./config.yaml", "config file")
@@ -30,7 +27,7 @@ func main() {
 		panic(err)
 	}
 
-	c := &config{}
+	c := &model.Config{}
 	err = yaml.Unmarshal(file, &c)
 	if err != nil {
 		panic(err)

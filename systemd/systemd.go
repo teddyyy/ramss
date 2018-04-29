@@ -17,8 +17,7 @@ const destUnit = "org.freedesktop.systemd1.Unit"
 const destService = "org.freedesktop.systemd1.Service"
 
 // Get ...
-func Get(ID string) (*model.Unit, error) {
-	var dstService = ID + ".service"
+func Get(unitName string, serviceName string) (*model.Unit, error) {
 
 	conn, err := dbus.SystemBus()
 	if err != nil {
@@ -27,7 +26,7 @@ func Get(ID string) (*model.Unit, error) {
 	}
 
 	var path dbus.ObjectPath
-	err = conn.Object(destBus, objectPath).Call(mngerMethod+".GetUnit", 0, dstService).Store(&path)
+	err = conn.Object(destBus, objectPath).Call(mngerMethod+".GetUnit", 0, serviceName).Store(&path)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to get object path:", err)
 		return nil, err
@@ -69,7 +68,7 @@ func Get(ID string) (*model.Unit, error) {
 	}
 
 	u := &model.Unit{
-		ID:            ID,
+		ID:            unitName,
 		Description:   desc,
 		LoadState:     loadStatus,
 		ActiveState:   activeStatus,
@@ -81,8 +80,7 @@ func Get(ID string) (*model.Unit, error) {
 }
 
 // Post ...
-func Post(ID string, action string, mode string) error {
-	var dstService = ID + ".service"
+func Post(serviceName string, action string, mode string) error {
 
 	conn, err := dbus.SystemBus()
 	if err != nil {
@@ -96,13 +94,13 @@ func Post(ID string, action string, mode string) error {
 
 	switch action {
 	case "start":
-		err = obj.Call(mngerMethod+".StartUnit", 0, dstService, mode).Store(&path)
+		err = obj.Call(mngerMethod+".StartUnit", 0, serviceName, mode).Store(&path)
 	case "restart":
-		err = obj.Call(mngerMethod+".RestartUnit", 0, dstService, mode).Store(&path)
+		err = obj.Call(mngerMethod+".RestartUnit", 0, serviceName, mode).Store(&path)
 	case "stop":
-		err = obj.Call(mngerMethod+".StopUnit", 0, dstService, mode).Store(&path)
+		err = obj.Call(mngerMethod+".StopUnit", 0, serviceName, mode).Store(&path)
 	case "reload":
-		err = obj.Call(mngerMethod+".ReloadUnit", 0, dstService, mode).Store(&path)
+		err = obj.Call(mngerMethod+".ReloadUnit", 0, serviceName, mode).Store(&path)
 	default:
 		fmt.Fprintln(os.Stderr, "Unknown action:", err)
 		return errors.New("Unknown action")

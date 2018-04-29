@@ -15,23 +15,24 @@ type (
 	}
 )
 
-func isIncludeConfig(unit string, systems []string) bool {
+func isIncludeConfig(unit string, systems []model.Service) *model.Service {
 	for _, system := range systems {
-		if system == unit {
-			return true
+		if system.UnitName == unit {
+			return &system
 		}
 	}
-	return false
+	return nil
 }
 
 // Get ...
-func Get(systems []string) echo.HandlerFunc {
+func Get(systems []model.Service) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		if !isIncludeConfig(c.Param("unit"), systems) {
+		system := isIncludeConfig(c.Param("unit"), systems)
+		if system == nil {
 			return requestError(c, http.StatusBadRequest, 404, "Not found")
 		}
 
-		status, err := systemd.Get(c.Param("unit"))
+		status, err := systemd.Get(system.UnitName, system.ServiceName)
 		if err != nil {
 			return httpError(c, http.StatusBadRequest, err, 400, "Invalid request")
 		}
@@ -41,12 +42,12 @@ func Get(systems []string) echo.HandlerFunc {
 }
 
 // Gets ...
-func Gets(systems []string) echo.HandlerFunc {
+func Gets(systems []model.Service) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var us model.Units
 
 		for _, system := range systems {
-			status, err := systemd.Get(system)
+			status, err := systemd.Get(system.UnitName, system.ServiceName)
 			if err != nil {
 				return httpError(c, http.StatusBadRequest, err, 400, "Invalid request")
 			}
@@ -58,7 +59,7 @@ func Gets(systems []string) echo.HandlerFunc {
 }
 
 // Post ...
-func Post(systems []string) echo.HandlerFunc {
+func Post(systems []model.Service) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		param := new(postParam)
 		if err := c.Bind(param); err != nil {
@@ -69,11 +70,12 @@ func Post(systems []string) echo.HandlerFunc {
 			return httpError(c, http.StatusBadRequest, err, 400, "Invalid json request")
 		}
 
-		if !isIncludeConfig(c.Param("unit"), systems) {
+		system := isIncludeConfig(c.Param("unit"), systems)
+		if system == nil {
 			return requestError(c, http.StatusBadRequest, 404, "Not found")
 		}
 
-		if err := systemd.Post(c.Param("unit"), param.Action, param.Mode); err != nil {
+		if err := systemd.Post(system.ServiceName, param.Action, param.Mode); err != nil {
 			return httpError(c, http.StatusBadRequest, err, 400, "Invalid request")
 		}
 

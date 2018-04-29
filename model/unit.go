@@ -26,3 +26,14 @@ type APIError struct {
 	Code    int
 	Message string
 }
+
+// Config ...
+type Config struct {
+	Services []Service `yaml:"services"`
+}
+
+// Service ...
+type Service struct {
+	UnitName    string `yaml:"unit_name"`
+	ServiceName string `yaml:"service_name"`
+}

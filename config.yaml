@@ -1,4 +1,10 @@
 services:
-  - sshd
-  - nginx
-  - rsyslog
+  -
+    unit_name: sshd
+    service_name: sshd.service
+  -
+    unit_name: nginx
+    service_name: nginx.service
+  -
+    unit_name: rsyslog
+    service_name: rsyslog.service
