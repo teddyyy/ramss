@@ -17,9 +17,12 @@ jobs:
     #### expecting it in the form of
     ####   /go/src/github.com/circleci/go-tool
     ####   /go/src/bitbucket.org/circleci/go-tool
-    working_directory: /go/src/github.com/teddyyy
+    working_directory: /go/src/github.com/teddyyy/ramss
     steps:
       - checkout
 
       # specify any bash command here prefixed with `run: `
-      - run: go tool vet ramss
+      - run: |
+         go get -u github.com/golang/lint/golint
+         golint . handlers model systemd
+         go tool vet main.go validate.go systemd/systemd.go handlers/handler.go model/unit.go
